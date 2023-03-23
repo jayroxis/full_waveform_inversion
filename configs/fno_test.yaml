@@ -1,0 +1,81 @@
+
+data:
+  name: Flat_Vel_A
+  train_set:
+    class: DummyFWIDataset
+    params:
+      output_size: 256
+      num_samples: 2000
+
+  train_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 20     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: True
+
+  val_set:
+    class: DummyFWIDataset
+    params:
+      output_size: 256
+
+  val_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 100     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: False
+
+training:
+  num_epochs: 1000
+  save_dir: runs/
+  optimizer:
+    class: torch.optim.AdamW
+    params:
+      lr: 0.0002
+      weight_decay: 0.0001
+
+  scheduler:
+    class: torch.optim.lr_scheduler.CosineAnnealingLR
+    params:
+      T_max: 1000        # should be the same as training epochs
+      eta_min: 0.0
+
+  params:                # arguments for PyTorch Lightning Trainer
+    accelerator: gpu
+    precision: 32        # DO NOT use 16 mixed precision for FNO
+    strategy: dp         # DO NOT use DDP for FNO, and DO NOT use multiple GPUs
+    enable_checkpointing: True
+    check_val_every_n_epoch: 10
+    log_every_n_steps: 50
+
+model:
+  name: FNO2d
+  params:
+    lambda_idt: 1.0           # weight for identity loss (nn.L1Loss)
+
+  criterion:
+    identity_loss: nn.L1Loss
+
+  vel_to_amp:
+    gen_config:
+      class: fno_2d           # generator model name
+      params:
+        in_chans: 1
+        out_chans: 5
+        modes1: 16
+        modes2: 16
+        width: 64
+
+  amp_to_vel:
+    gen_config:
+      class: fno_2d
+      params:
+        in_chans: 5
+        out_chans: 1
+        modes1: 16
+        modes2: 16
+        width: 64
+

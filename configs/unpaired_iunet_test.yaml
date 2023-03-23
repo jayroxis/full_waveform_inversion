@@ -1,0 +1,89 @@
+
+data:
+  name: Flat_Vel_A
+  train_set:
+    class: DummyFWIDataset
+    params:
+      output_size: 256
+      num_samples: 2000
+
+  train_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 10     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: True
+
+  val_set:
+    class: DummyFWIDataset
+    params:
+      output_size: 256
+
+  val_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 100     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: False
+
+training:
+  num_epochs: 1000
+  save_dir: runs/
+  optimizer:
+    class: torch.optim.AdamW
+    params:
+      lr: 0.0002
+      weight_decay: 0.0001
+
+  scheduler:
+    class: torch.optim.lr_scheduler.CosineAnnealingLR
+    params:
+      T_max: 1000        # should be the same as training epochs
+      eta_min: 0.0
+
+  params:                  # arguments for PyTorch Lightning Trainer
+    accelerator: gpu
+    precision: 16
+    strategy: ddp
+    enable_checkpointing: True
+    check_val_every_n_epoch: 1
+    log_every_n_steps: 50
+
+model:
+  name: iUNet
+  class: invertible_unet
+  invertible: True
+  params:
+    lambda_gan: 1          # weight for GAN loss 
+    lambda_cycle: 10       # weight for cycle-consistency loss 
+
+  model_params:
+    amp_chans: 5
+    vel_chans: 1
+    hidden_chans: 128
+    num_layers: 3
+    num_coupling_blk: 4
+
+  criterion:
+    gan_loss: nn.BCEWithLogitsLoss
+    cycle_loss: nn.L1Loss
+
+  vel_to_amp:
+    disc_config:
+      class: patch_gan_disc # discriminator model name
+      params:
+        input_nc: 5         # should be the same as generator out_channels
+        ndf: 64
+        n_layers: 3
+
+  amp_to_vel:
+    disc_config:
+      class: patch_gan_disc
+      params:
+        input_nc: 1         # should be the same as generator out_channels
+        ndf: 64
+        n_layers: 3
+
+

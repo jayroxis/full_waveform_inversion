@@ -1,0 +1,76 @@
+
+data:
+  name: Flat_Vel_A
+  train_set:
+    class: DummyFWIDataset
+    params:
+      output_size: 256
+      num_samples: 2000
+
+  train_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 20     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: True
+
+  val_set:
+    class: DummyFWIDataset
+    params:
+      output_size: 256
+
+  val_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 100     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: False
+
+training:
+  num_epochs: 1000
+  save_dir: runs/
+  optimizer:
+    class: torch.optim.AdamW
+    params:
+      lr: 0.0002
+      weight_decay: 0.0001
+
+  scheduler:
+    class: torch.optim.lr_scheduler.CosineAnnealingLR
+    params:
+      T_max: 1000        # should be the same as training epochs
+      eta_min: 0.0
+
+  params:                  # arguments for PyTorch Lightning Trainer
+    accelerator: gpu
+    precision: 16
+    strategy: ddp
+    enable_checkpointing: True
+    check_val_every_n_epoch: 10
+    log_every_n_steps: 50
+
+model:
+  name: UNet
+  params:
+    lambda_idt: 1.0        # weight for identity loss (nn.L1Loss)
+
+  criterion:
+    identity_loss: nn.L1Loss
+
+  vel_to_amp:
+    gen_config:
+      class: unet           # generator model name
+      params:
+        in_channels: 1
+        out_channels: 5
+        init_features: 32
+
+  amp_to_vel:
+    gen_config:
+      class: unet
+      params:
+        in_channels: 5
+        out_channels: 1
+        init_features: 32
