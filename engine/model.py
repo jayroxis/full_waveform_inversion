@@ -464,12 +464,12 @@ class FWIModel(pl.LightningModule):
 
         # log images
         for name, value in self.saved_output.items():
-            self.log_image(name="train/" + name, tensor=value[0][0])
+            self.log_image(name=f"train/{name}/{self.current_epoch}", tensor=value[0][0])
 
     def on_validation_epoch_end(self):
         # log images
         for name, value in self.saved_output.items():
-            self.log_image(name="eval/" + name, tensor=value[0][0])
+            self.log_image(name=f"eval/{name}/{self.current_epoch}", tensor=value[0][0])
             
     def training_step_end(self, step_output):
         if step_output is not None:
