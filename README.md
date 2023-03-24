@@ -2,6 +2,11 @@
 # Full Waveform Inversion
 An PyTorch Implementation For Full-Waveform Modeling With Deep Vision-Models.
 
+## Training Instruction
+Use `train.py` as follows if you want to train on device 0 ~ 6:
+```
+python3 train.py --config <config_path> --gpu 0 1 2 3 4 5 6
+```
 
 ## Avaible Strategies For PyTorch Lightning
 
