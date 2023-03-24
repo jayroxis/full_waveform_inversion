@@ -1,0 +1,40 @@
+
+data:
+  name: Flat_Vel_A
+  train_set:
+    class: OpenFWIDataset
+    params:
+      amp_path: # your amplitude file path for training
+      vel_path: # your velocity file path for training
+      output_size: 256
+      amp_mean: 0.0
+      vel_mean: 2800.0
+      amp_std: 1.5
+      vel_std: 800.0
+
+  train_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 100     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: True
+
+  val_set:
+    class: OpenFWIDataset
+    params:
+      amp_path: # your amplitude file path for testing
+      vel_path: # your velocity file path for testing
+      output_size: 256
+      amp_mean: 0.0
+      vel_mean: 2800.0
+      amp_std: 1.5
+      vel_std: 800.0
+
+  val_loader:
+    class: torch.utils.data.DataLoader
+    params:
+      batch_size: 100     # effective batch size = batch_size * num_gpu
+      num_workers: 8
+      pin_memory: False
+      shuffle: False

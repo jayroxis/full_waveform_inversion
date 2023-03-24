@@ -27,9 +27,12 @@ class OpenFWIDataset(Dataset):
         self, 
         amp_path: str, 
         vel_path: str, 
-        output_size: int = 256
+        output_size: int = 256,
+        amp_mean: float = 0,
+        vel_mean: float = 2800,
+        amp_std: float = 1.5,
+        vel_std: float = 800,
     ):
-        
         # list all .npy files
         if os.path.isdir(amp_path):
             amp_files = glob(os.path.join(amp_path, "*.npy"))
@@ -61,6 +64,10 @@ class OpenFWIDataset(Dataset):
             (output_size, output_size), 
             interpolation=InterpolationMode.BICUBIC,
         )
+
+        # Define a transform to normalize the output
+        self.amp_norm = transforms.Normalize(mean=amp_mean, std=amp_std)
+        self.vel_norm = transforms.Normalize(mean=vel_mean, std=vel_std)
         
     def __len__(self):
         """
@@ -87,7 +94,9 @@ class OpenFWIDataset(Dataset):
         amp = self.transform(amp)
         vel = self.transform(vel)
         
-        # return amplitude and velocity tensors
+        # normalize amplitude and velocity tensors
+        amp = self.amp_norm(amp)
+        vel = self.vel_norm(vel)
         return vel, amp
 
 

@@ -1,6 +1,6 @@
-https://download.pytorch.org/whl/cu116/torch-1.13.0%2Bcu116-cp39-cp39-linux_x86_64.whl
-https://download.pytorch.org/whl/cu116/torchvision-0.14.0%2Bcu116-cp39-cp39-linux_x86_64.whl
 pytorch-lightning==1.8.0
 timm==0.6.11
 scipy==1.8.0
 iunets
+https://download.pytorch.org/whl/cu116/torch-1.13.0%2Bcu116-cp39-cp39-linux_x86_64.whl
+https://download.pytorch.org/whl/cu116/torchvision-0.14.0%2Bcu116-cp39-cp39-linux_x86_64.whl
