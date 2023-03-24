@@ -5,6 +5,11 @@ import json
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
+# This line is very IMPORTANT for expected Cluster behavior
+#       Note: if you want to use Slurm, use other environments.
+from pytorch_lightning.plugins.environments import LightningEnvironment
+
+# Load PyTorch Lightning training
 from engine.data import DataModule
 from engine.arguments import ArgumentParserModule
 from engine.model import FWIModel, InvertibleFWIModel
@@ -42,6 +47,7 @@ def main():
     trainer = pl.Trainer(
         devices=args.gpu,
         logger=tb_logger,
+        plugins=[LightningEnvironment()],
         **configs["training"]["params"]
     )
 
