@@ -465,16 +465,15 @@ class FWIModel(pl.LightningModule):
         # log images
         for name, value in self.saved_output.items():
             self.log_image(name="train/" + name, tensor=value[0][0])
-        self.saved_output = None
 
     def on_validation_epoch_end(self):
         # log images
         for name, value in self.saved_output.items():
             self.log_image(name="eval/" + name, tensor=value[0][0])
-        self.saved_output = None
             
     def training_step_end(self, step_output):
-        self.saved_output = step_output
+        if step_output is not None:
+            self.saved_output = step_output
 
         # log learning rate
         lr_schedulers = self.lr_schedulers()
