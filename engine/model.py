@@ -464,12 +464,12 @@ class FWIModel(pl.LightningModule):
 
         # log images
         for name, value in self.saved_output.items():
-            self.log_image(name=f"train/{name}/{self.current_epoch}", tensor=value[0][0])
+            self.log_image(name=f"train/{name}", tensor=value[0][0])
 
     def on_validation_epoch_end(self):
         # log images
         for name, value in self.saved_output.items():
-            self.log_image(name=f"eval/{name}/{self.current_epoch}", tensor=value[0][0])
+            self.log_image(name=f"eval/{name}", tensor=value[0][0])
             
     def training_step_end(self, step_output):
         if step_output is not None:
@@ -546,7 +546,7 @@ class FWIModel(pl.LightningModule):
         else:
             lr_schedulers.step(epoch)
 
-    def log_image(self, name, tensor):
+    def log_image(self, name, tensor, step=None):
         # assume tensor is a torch.Tensor with shape (height, width)
         # convert to 3 channels (assuming input tensor is grayscale)
         assert tensor.ndim == 2, "Image logging only work for 2D PyTorch tensors."
@@ -562,7 +562,14 @@ class FWIModel(pl.LightningModule):
         img_colored_array = img_cmap(img_array)
 
         # log the image to Tensorboard
-        self.logger.experiment.add_image(name, img_colored_array, dataformats="HWC")
+        if step is None:
+            step = self.current_epoch
+        self.logger.experiment.add_image(
+            name, 
+            img_colored_array, 
+            dataformats="HWC",
+            step=step,
+        )
 
 
 class InvertibleFWIModel(FWIModel):
