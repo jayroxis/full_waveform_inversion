@@ -2,13 +2,33 @@
 # Full Waveform Inversion
 An PyTorch Implementation For Full-Waveform Modeling With Deep Vision-Models.
 
+## Installation
+
+Create a Python environmemt:
+``` python3 -m venv venv ```
+
+Then activate the environment:
+
+```source venv/bin/activate```
+
+First update `pip`:
+
+```python3 -m pip install --update pip```
+
+Run the following:
+
+```python3 -m pip install -r requirements.txt```
+
 ## Training Instruction
+
 Use `train.py` as follows if you want to train on device 0 ~ 6:
 ```
 python3 train.py --config <config_path> --gpu 0 1 2 3 4 5 6
 ```
 
-## Avaible Strategies For PyTorch Lightning
+Note: FNO `fno_2d` models do not work for multiple gpus now (imcompatible with `nccl` backend).
+
+### Avaible Strategies For PyTorch Lightning
 
 - bagua
 - colossalai
@@ -45,3 +65,6 @@ python3 train.py --config <config_path> --gpu 0 1 2 3 4 5 6
 - tpu_spawn
 - tpu_spawn_debug
 
+### Available Backend
+Check here in PyTorch Lightning
+https://pytorch.org/docs/stable/distributed.html

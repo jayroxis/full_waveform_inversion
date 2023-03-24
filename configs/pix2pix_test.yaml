@@ -1,4 +1,6 @@
 
+# ====================== Data Configs =========================
+
 data:
   name: Flat_Vel_A
   train_set:
@@ -28,19 +30,34 @@ data:
       pin_memory: False
       shuffle: False
 
+# ==================== Training Configs =========================
 training:
-  num_epochs: 1000
+  num_epochs: 20
   save_dir: runs/
   optimizer:
-    class: torch.optim.AdamW
-    params:
-      lr: 0.0002
-      weight_decay: 0.0001
+
+    generator:
+      class: torch.optim.AdamW
+      params:
+        lr: 0.0005
+        weight_decay: 0.0001
+
+    amp_disc:
+      class: torch.optim.AdamW
+      params:
+        lr: 0.0001
+        weight_decay: 0.0005
+
+    vel_disc:
+      class: torch.optim.AdamW
+      params:
+        lr: 0.0001
+        weight_decay: 0.0005
 
   scheduler:
     class: torch.optim.lr_scheduler.CosineAnnealingLR
     params:
-      T_max: 1000        # should be the same as training epochs
+      T_max: 20            # should be the same as training epochs
       eta_min: 0.0
 
   params:                  # arguments for PyTorch Lightning Trainer
@@ -48,18 +65,30 @@ training:
     precision: 16
     strategy: ddp
     enable_checkpointing: True
-    check_val_every_n_epoch: 10
+    check_val_every_n_epoch: 1
     log_every_n_steps: 50
+
+# ====================== Model Configs =========================
 
 model:
   name: Pix2Pix
-  params:
-    lambda_idt: 100        # weight for identity loss (nn.L1Loss)
-    lambda_gan: 1          # weight for GAN loss 
 
-  criterion:
-    identity_loss: nn.L1Loss
-    gan_loss: nn.BCEWithLogitsLoss
+  train_metrics:
+    mse_loss:
+      class: nn.MSELoss
+      weight: 100
+    identity_loss: 
+      class: nn.L1Loss
+      weight: 100
+    gan_loss:
+      class: nn.BCEWithLogitsLoss
+      weight: 1
+  
+  eval_metrics:
+    identity_loss: 
+      class: nn.L1Loss
+    mse_loss:
+      class: nn.MSELoss
 
   vel_to_amp:
     gen_config:

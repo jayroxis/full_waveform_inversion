@@ -240,6 +240,8 @@ class FWIModel(pl.LightningModule):
 
         # loss for amplitude prediction
         if self.use_amp_disc:
+            prefix = "train/amplitude/discriminator/"
+
             # unpack optimizers
             amp_disc_opt = self.optimizers()[1]
             amp_metrics = self.train_metrics["amp_model"]
@@ -261,10 +263,12 @@ class FWIModel(pl.LightningModule):
             )
 
             d_loss = d_loss + d_loss_amp
-            stats["d_loss_amp"] = d_loss_amp.item()
+            stats[prefix + "loss"] = d_loss_amp.item()
 
         # loss for velocity prediction      
         if self.use_vel_disc:  
+            prefix = "train/velocity/discriminator/"
+
             # unpack optimizers
             vel_disc_opt = self.optimizers()[2]
             vel_metrics = self.train_metrics["vel_model"]
@@ -286,7 +290,7 @@ class FWIModel(pl.LightningModule):
             )
 
             d_loss = d_loss + d_loss_vel
-            stats["d_loss_vel"] = d_loss_vel.item()
+            stats[prefix + "loss"] = d_loss_vel.item()
 
         # backward and update
         if self.use_amp_disc or self.use_vel_disc:
@@ -347,6 +351,7 @@ class FWIModel(pl.LightningModule):
         #   (special for `gan_loss`, `disc_loss` and `cycle_loss`)
         if "amp_model" in self.train_metrics:
             metrics = deepcopy(self.train_metrics["amp_model"])
+            prefix = "train/amplitude/generator/"
 
             # gan loss
             if "gan_loss" in metrics:
@@ -361,7 +366,7 @@ class FWIModel(pl.LightningModule):
                         torch.ones_like(fake_score)
                     )
                     g_loss = g_loss + weight * loss_gan
-                    stats["g_gan_loss_amp"] = loss_gan.item()
+                    stats[prefix + "gan_loss"] = loss_gan.item()
 
             # cycle consistency loss
             if "cycle_loss" in metrics:
@@ -373,7 +378,7 @@ class FWIModel(pl.LightningModule):
                 loss_cycle = cycle_loss(cycle_amp, amp)
 
                 g_loss = g_loss + weight * loss_cycle
-                stats["g_cycle_loss_amp"] = loss_cycle.item()
+                stats[prefix + "cycle_loss"] = loss_cycle.item()
 
             # remove disc_loss
             if "disc_loss" in metrics:
@@ -386,12 +391,13 @@ class FWIModel(pl.LightningModule):
                 metrics=metrics
             ) 
             g_loss = g_loss + g_losses_amp.pop("loss")
-            stats.update({f"g_{k}_amp": v for k, v in g_losses_amp.items()})
+            stats.update({prefix + k: v for k, v in g_losses_amp.items()})
 
         # Calculate for `vel_model`:
         #   (special for `gan_loss`, `disc_loss` and `cycle_loss`)
         if "vel_model" in self.train_metrics:
             metrics = deepcopy(self.train_metrics["vel_model"])
+            prefix = "train/velocity/generator/"
 
             # gan loss
             if "gan_loss" in metrics:
@@ -406,7 +412,7 @@ class FWIModel(pl.LightningModule):
                         torch.ones_like(fake_score)
                     )
                     g_loss = g_loss + weight * loss_gan_vel
-                    stats["g_gan_loss_vel"] = loss_gan_vel.item()
+                    stats[prefix + "gan_loss"] = loss_gan_vel.item()
 
             # cycle consistency loss
             if "cycle_loss" in metrics:
@@ -418,7 +424,7 @@ class FWIModel(pl.LightningModule):
                 loss_cycle = cycle_loss(cycle_vel, vel)
 
                 g_loss = g_loss + weight * loss_cycle
-                stats["g_cycle_loss_vel"] = loss_cycle.item()
+                stats[prefix + "cycle_loss"] = loss_cycle.item()
 
             # remove disc_loss
             if "disc_loss" in metrics:
@@ -431,7 +437,7 @@ class FWIModel(pl.LightningModule):
                 metrics=metrics
             ) 
             g_loss = g_loss + g_losses_vel.pop("loss")
-            stats.update({f"g_{k}_vel": v for k, v in g_losses_vel.items()})
+            stats.update({prefix + k: v for k, v in g_losses_vel.items()})
 
         # backward velocity and amplitude model 
         gen_opt.zero_grad()
@@ -443,6 +449,9 @@ class FWIModel(pl.LightningModule):
         self.log_dict(stats, prog_bar=False)
 
     def training_step_end(self, step_output):
+        # learning rate scheduler update
+        self.lr_scheduler_step(epoch=self.current_epoch)
+
         # log learning rate
         lr_schedulers = self.lr_schedulers()
         if isinstance(lr_schedulers, list) or isinstance(lr_schedulers, tuple):
@@ -484,12 +493,14 @@ class FWIModel(pl.LightningModule):
 
         # log all metrics
         stats = {}
+        prefix = "evaluation/amplitude/generator/"
         for name, value in amp_stats.items():
-            name = "_".join(["eval_g", name, "amp"])
+            name = prefix + name
             stats[name] = value
 
+        prefix = "evaluation/velocity/generator/"
         for name, value in vel_stats.items():
-            name = "_".join(["eval_g", name, "vel"])
+            name = prefix + name
             stats[name] = value
 
         self.log_dict(stats, prog_bar=False)
