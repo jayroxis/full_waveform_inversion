@@ -4,7 +4,9 @@ import torch.nn as nn
 import timm
 import pytorch_lightning as pl
 import utils.model
+
 from copy import deepcopy
+from matplotlib import cm
 
 
 class FWIModel(pl.LightningModule):
@@ -448,9 +450,31 @@ class FWIModel(pl.LightningModule):
         self.log("g_loss", g_loss.item(), prog_bar=True)
         self.log_dict(stats, prog_bar=False)
 
-    def training_step_end(self, step_output):
+        step_output = {
+            "pred_amp": fake_amp.detach(),
+            "true_amp": amp,
+            "pred_vel": fake_vel.detach(),
+            "true_vel": vel,
+        }
+        return step_output
+
+    def on_train_epoch_end(self):
         # learning rate scheduler update
         self.lr_scheduler_step(epoch=self.current_epoch)
+
+        # log images
+        for name, value in self.saved_output.items():
+            self.log_image(name="train/" + name, tensor=value[0][0])
+        self.saved_output = None
+
+    def on_validation_epoch_end(self):
+        # log images
+        for name, value in self.saved_output.items():
+            self.log_image(name="eval/" + name, tensor=value[0][0])
+        self.saved_output = None
+            
+    def training_step_end(self, step_output):
+        self.saved_output = step_output
 
         # log learning rate
         lr_schedulers = self.lr_schedulers()
@@ -505,6 +529,14 @@ class FWIModel(pl.LightningModule):
 
         self.log_dict(stats, prog_bar=False)
 
+        # save output for logging
+        self.saved_output = {
+            "pred_amp": fake_amp.detach(),
+            "true_amp": amp,
+            "pred_vel": fake_vel.detach(),
+            "true_vel": vel,
+        }
+
     def lr_scheduler_step(self, epoch):
         # Step learning rate schedulers
         lr_schedulers = self.lr_schedulers()
@@ -515,6 +547,23 @@ class FWIModel(pl.LightningModule):
         else:
             lr_schedulers.step(epoch)
 
+    def log_image(self, name, tensor):
+        # assume tensor is a torch.Tensor with shape (height, width)
+        # convert to 3 channels (assuming input tensor is grayscale)
+        assert tensor.ndim == 2, "Image logging only work for 2D PyTorch tensors."
+        tensor = tensor.detach().cpu()
+        # tensor = torch.stack([tensor, tensor, tensor], dim=0)
+
+        # normalize to range [0, 1]
+        tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
+
+        # convert to numpy array and apply colormap
+        img_array = tensor.squeeze().cpu().numpy()
+        img_cmap = cm.get_cmap('viridis')
+        img_colored_array = img_cmap(img_array)
+
+        # log the image to Tensorboard
+        self.logger.experiment.add_image(name, img_colored_array, dataformats="HWC")
 
 
 class InvertibleFWIModel(FWIModel):
