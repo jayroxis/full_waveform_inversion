@@ -8,7 +8,7 @@ For interactive session on `ARC` for 2 GPUs, use the following:
 ```
 interact -A ml4science --gres=gpu:2 -p dgx_normal_q --ntasks-per-node=2 -t 60:00:00
 ```
-where `ntasks-per-nod` will be the number of GPUs you want to use for each training.
+where `ntasks-per-node` will be the number of GPUs you want to use for each training.
 
 Create a Python environmemt:
 ``` python3 -m venv venv ```
