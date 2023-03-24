@@ -19,7 +19,7 @@ Then activate the environment:
 
 First update `pip`:
 
-```python3 -m pip install --update pip```
+```python3 -m pip install --upgrade pip```
 
 Run the following:
 
