@@ -37,14 +37,21 @@ class OpenFWIDataset(Dataset):
         if os.path.isdir(amp_path):
             amp_files = glob(os.path.join(amp_path, "*.npy"))
         elif os.path.isfile(amp_path):
+            dir_name = os.path.dirname(amp_path)
             with open(amp_path, 'r') as f:
-                amp_files = [line.rstrip('\n') for line in f.readlines()]
+                amp_files = [
+                    os.path.join(dir_name, line.rstrip('\n')) 
+                    for line in f.readlines()
+                ]
         if os.path.isdir(vel_path):
             vel_files = glob(os.path.join(vel_path, "*.npy"))
         elif os.path.isfile(vel_path):
+            dir_name = os.path.dirname(amp_path)
             with open(vel_path, 'r') as f:
-                vel_files = [line.rstrip('\n') for line in f.readlines()]
-
+                vel_files = [
+                    os.path.join(dir_name, line.rstrip('\n')) 
+                    for line in f.readlines()
+                ]
         # read .npy files and concatenate along first dimension
         self.amp_data = []
         for file in amp_files:
