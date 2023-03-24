@@ -568,7 +568,7 @@ class FWIModel(pl.LightningModule):
             name, 
             img_colored_array, 
             dataformats="HWC",
-            step=step,
+            global_step=step,
         )
 
 
