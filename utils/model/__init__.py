@@ -4,3 +4,4 @@ from .unet import *
 from .fno import *
 from .discriminator import *
 from .invertible_unet import *
+from .invertible_transformer import *
