@@ -101,5 +101,5 @@ class UpsamplingBlock(nn.Module):
         out = self.act(self.conv2(out))
         out = self.norm3(out)
         out = self.resize(out)
-        out = self.act(self.conv3(out))
+        out = self.conv3(out)
         return out
