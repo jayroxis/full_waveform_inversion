@@ -1,12 +1,18 @@
 
 # Full Waveform Inversion
-An PyTorch Implementation For Full-Waveform Modeling With Deep Vision-Models.
+An PyTorch Implementation For Full-Waveform Modeling With Deep Vision-Models on **OpenFWI** dataset.
+
+### Model includes:
+- **Dual-UNets**: One UNet for velocity to amplitude (forward) and one UNet for amplitude to velocity (backward). 
+- **Dual-GAN**:   One Pix2Pix for velocity to amplitude (forward) and one Pix2Pix for amplitude to velocity (backward). [(Arxiv: Yi et al., 2017)](https://arxiv.org/abs/1704.02510)
+- **Cycle-GAN**:  Dual-GAN with cycle consistency loss. [(Arxiv: Zhu et al., 2017)](https://arxiv.org/abs/1703.10593)
+- **iUNet**: Invertible UNet for learning invertible mapping that solves forward and backward at the same time. [(Arxiv: Etmann et al., 2020)](https://arxiv.org/abs/2005.05220)
 
 ## Installation
 
-For interactive session on `ARC` for 2 GPUs, use the following:
+For interactive session on `SLURM Cluster` for 2 GPUs, use the following:
 ```
-interact -A ml4science --gres=gpu:2 -p dgx_normal_q --ntasks-per-node=2 -t 60:00:00
+interact -A [account] --gres=gpu:2 -p dgx_normal_q --ntasks-per-node=2 -t 60:00:00
 ```
 where `ntasks-per-node` will be the number of GPUs you want to use for each training.
 
@@ -33,6 +39,17 @@ python3 train.py --config <config_path> --gpu 0 1 2 3 4 5 6
 ```
 
 Note: FNO `fno_2d` models do not work for multiple gpus now (imcompatible with `nccl` backend).
+
+## Citate This Work
+```
+@misc{bu2023fullwaveform,
+  author = {Bu, Jie},
+  title = {Full Waveform Inversion Baselines For OpenFWI},
+  year = {2023},
+  note = {GitHub repository},
+  url = {https://github.com/jayroxis/full_waveform_inversion}
+}
+```
 
 ### Avaible Strategies For PyTorch Lightning
 
